@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>סרטון החידה שלכם</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --teal:#0e9488; --teal-dark:#0b756c; --teal-soft:#e6f4f2;
+  --ink:#1f2933; --ink-soft:#52606d; --bg:#faf9f6; --card:#ffffff;
+  --line:#eceae4; --err:#c0392b;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+body{margin:0; background:var(--bg); color:var(--ink);
+  font-family:'Heebo',sans-serif; font-size:17px; line-height:1.6}
+.wrap{max-width:640px; margin:0 auto; padding:28px 18px 120px}
+header{text-align:center; margin:18px 0 34px}
+header .dot{color:var(--teal); font-size:22px}
+h1{font-size:26px; font-weight:900; margin:8px 0 6px}
+.sub{color:var(--ink-soft); font-size:15.5px; max-width:440px; margin:0 auto}
+.card{background:var(--card); border-radius:18px; padding:22px 20px;
+  margin-bottom:18px; box-shadow:0 1px 4px rgba(31,41,51,.05)}
+.sec-title{font-size:18px; font-weight:700; margin:0 0 4px}
+.sec-title .dot{color:var(--teal); margin-left:6px}
+.sec-hint{color:var(--ink-soft); font-size:14px; margin:0 0 14px}
+.field{margin-bottom:18px}
+.field:last-child{margin-bottom:4px}
+label.flabel{display:block; font-weight:500; margin-bottom:7px; font-size:15.5px}
+label.flabel .req{color:var(--teal); font-weight:700}
+.fhint{font-size:13px; color:var(--ink-soft); margin-top:-4px; margin-bottom:7px}
+input[type=text],input[type=tel],input[type=number],input[type=date],textarea{
+  width:100%; border:1.5px solid var(--line); border-radius:12px;
+  padding:11px 14px; font:inherit; font-size:16px; background:#fff; color:var(--ink);
+  transition:border-color .15s}
+input:focus,textarea:focus{outline:none; border-color:var(--teal)}
+textarea{min-height:84px; resize:vertical}
+.chips{display:flex; flex-wrap:wrap; gap:9px}
+.chip{border:1.5px solid var(--line); background:#fff; border-radius:999px;
+  padding:8px 16px; font:inherit; font-size:15px; cursor:pointer; color:var(--ink);
+  transition:all .12s}
+.chip.on{background:var(--teal); border-color:var(--teal); color:#fff; font-weight:500}
+.other-input{margin-top:9px; display:none}
+.other-input.show{display:block}
+.info{background:var(--teal-soft); border-radius:12px; padding:12px 15px;
+  font-size:14.5px; color:var(--teal-dark)}
+.missing{border-color:var(--err)!important}
+.missing-note{color:var(--err); font-size:13px; margin-top:5px; display:none}
+.submitbar{position:fixed; bottom:0; right:0; left:0; padding:14px 18px 22px;
+  background:linear-gradient(to top, var(--bg) 65%, transparent)}
+.bigbtn{display:block; width:100%; max-width:640px; margin:0 auto;
+  background:var(--teal); color:#fff; border:none; border-radius:14px;
+  padding:16px; font:inherit; font-size:18px; font-weight:700; cursor:pointer;
+  box-shadow:0 4px 14px rgba(14,148,136,.35)}
+.bigbtn:active{transform:scale(.985)}
+.bigbtn.gray{background:#aab3ba; box-shadow:none}
+.bigbtn.outline{background:#fff; color:var(--teal); border:1.5px solid var(--teal);
+  box-shadow:none; margin-top:10px}
+.center{text-align:center}
+.state-icon{font-size:52px; margin-bottom:10px}
+.riddle{display:flex; gap:12px; padding:14px 0; border-bottom:1px solid var(--line)}
+.riddle:last-child{border-bottom:none}
+.riddle .num{flex:0 0 32px; height:32px; border-radius:50%; background:var(--teal-soft);
+  color:var(--teal-dark); font-weight:700; display:flex; align-items:center;
+  justify-content:center; font-size:15px}
+.riddle .txt{font-size:16px}
+.riddle .shot{font-size:13.5px; color:var(--ink-soft); margin-top:3px}
+.wa-btn{display:inline-block; background:#25D366; color:#fff; text-decoration:none;
+  border-radius:12px; padding:12px 22px; font-weight:700; margin-top:14px}
+#toast{position:fixed; top:16px; right:16px; left:16px; margin:0 auto; max-width:400px;
+  background:var(--ink); color:#fff; border-radius:12px; padding:12px 18px;
+  text-align:center; font-size:15px; display:none; z-index:50}
+.spin{width:34px; height:34px; border:3.5px solid var(--teal-soft);
+  border-top-color:var(--teal); border-radius:50%; margin:40px auto;
+  animation:sp 0.8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+<div class="wrap">
+  <header>
+    <div class="dot">●</div>
+    <h1 id="page-title">סרטון החידה שלכם</h1>
+    <p class="sub" id="page-sub">רגע של קסם באירוע — מתחיל כאן</p>
+  </header>
+  <div id="view"><div class="spin"></div></div>
+</div>
+<div class="submitbar hide" id="submitbar">
+  <button class="bigbtn" id="submit-btn">שליחת השאלון ✓</button>
+</div>
+
+<script>
+/* ================= הגדרות ================= */
+const API = 'https://jsonblob.com/api/jsonBlob';
+const SUPPORT_PHONE = '972548469516'; // יהודה
+const qs = new URLSearchParams(location.search);
+const BLOB_ID = qs.get('id') || '';
+const TYPE = qs.get('t') || 'person';
+const DRAFT_KEY = 'riddle-draft-' + BLOB_ID;
+
+/* ================= סכימת שאלון: חידת אדם ================= */
+const SCHEMAS = {
+person: {
+  title: 'סרטון החידה שלכם',
+  sub: 'כמה דקות של מילוי — וסרטון חידה מרגש בדרך אליכם. ככל שתפרטו יותר, החידות יהיו מדויקות יותר.',
+  sections: [
+   {title:'על החוגג והאירוע', hint:'הפרטים הבסיסיים — והכי חשוב: השם נשאר סוד עד שתחליטו אחרת', fields:[
+     {key:'subject_name', label:'שם החוגג / החוגגת', type:'text', required:true,
+      hint:'נשאר סוד! לא יופיע בסרטון אלא אם תבחרו בסוף השאלון'},
+     {key:'nickname', label:'איך כולם קוראים לו/לה? (כינוי)', type:'text'},
+     {key:'occasion', label:'מה האירוע?', type:'chips', required:true, allowOther:true,
+      options:['יום הולדת עגול','בר מצווה','סיום מסכת / סיום ש"ס','יובל נישואין','פרישה']},
+     {key:'age_number', label:'המספר החגיגי (גיל / שנים)', type:'number',
+      hint:'חשוב! המספר הזה יהפוך לרמז ויזואלי בסרטון'},
+     {key:'event_date', label:'מתי האירוע?', type:'date'},
+   ]},
+   {title:'תכונות ואופי', hint:'מה שכולם יזהו מיד', fields:[
+     {key:'traits', label:'בחרו 3–5 תכונות בולטות', type:'chips-multi', allowOther:true,
+      options:['בעל חסד','למדן','בדחן','מקפיד על תפילה','לב זהב','ידיים טובות','ענוותן','מכניס אורחים','איש אמת']},
+     {key:'saying', label:'משפט או אמרה שהוא/היא תמיד אומר/ת', type:'text',
+      hint:'זה הופך לרמז מנצח בקריינות 😉'},
+     {key:'known_for', label:'מה כולם מיד יודעים עליו/עליה?', type:'textarea'},
+   ]},
+   {title:'עיסוק ותפקיד', fields:[
+     {key:'occupation', label:'מקצוע / עיסוק', type:'text'},
+     {key:'community_role', label:'תפקיד בקהילה', type:'chips-multi', allowOther:true,
+      options:['גבאי','בעל קורא','בעל תוקע','מגיד שיעור','חזן','מלמד','ראש כולל','ללא תפקיד מיוחד']},
+     {key:'learning_seder', label:'סדר לימוד קבוע (דף יומי, חברותא...)', type:'text'},
+   ]},
+   {title:'תחביבים ואהבות', fields:[
+     {key:'hobbies', label:'תחביבים', type:'text'},
+     {key:'favorite_food', label:'מאכל אהוב', type:'text'},
+     {key:'favorite_niggun', label:'ניגון / שיר אהוב', type:'text'},
+     {key:'special_custom', label:'מנהג מיוחד (שולחן שבת, הבדלה, קידוש...)', type:'textarea'},
+   ]},
+   {title:'סיפור החיים', hint:'תחנות שיהפכו לרמזים מרגשים', fields:[
+     {key:'childhood_place', label:'עיר / ארץ הילדות', type:'text'},
+     {key:'yeshiva', label:'הישיבה / הסמינר בהם למד/ה', type:'text'},
+     {key:'milestone', label:'תחנה מכוננת בחיים (עלייה לארץ, הקמת מוסד, מעשה מיוחד...)', type:'textarea'},
+     {key:'family_secret_hint', label:'פרט קטן שרק המשפחה תזהה', type:'textarea',
+      hint:'רמז עדין וחיובי — משהו שיגרום לכולם לחייך'},
+   ]},
+   {title:'המשפחה', fields:[
+     {key:'from_whom', label:'ממי הסרטון?', type:'chips', allowOther:true,
+      options:['הנכדים','הילדים','כל המשפחה','הקהילה','חברים']},
+     {key:'children_count', label:'מספר ילדים', type:'number'},
+     {key:'grandchildren_count', label:'מספר נכדים', type:'number',
+      hint:'מספרים הופכים לסמלים יפים בסרטון'},
+   ]},
+   {title:'סגנון הסרטון', fields:[
+     {key:'mood', label:'איזו אווירה?', type:'chips',
+      options:['חם ומשפחתי','מלכותי וחגיגי','נוסטלגי','מרגש']},
+     {key:'difficulty', label:'רמת החידות', type:'chips',
+      options:['קלות לניחוש','בינוני','מאתגרות']},
+     {key:'_modesty', type:'info',
+      text:'✓ הסרטון מופק בסגנון צנוע ומכובד, ברוח הקהילה — נופים, סמלים וחפצים, ללא תוכן שאינו הולם.'},
+   ]},
+   {title:'לסיום', fields:[
+     {key:'reveal_name', label:'איך לסיים את הסרטון?', type:'chips',
+      options:['לסיים ב"מי אני?" — הקהל מנחש (מומלץ)','לחשוף את השם בסוף הסרטון']},
+     {key:'contact_phone', label:'מספר וואטסאפ לעדכונים ואישור התסריט', type:'tel', required:true},
+     {key:'notes', label:'עוד משהו שחשוב שנדע?', type:'textarea'},
+   ]},
+  ]
+}
+};
+
+/* ================= עזרים ================= */
+const view = document.getElementById('view');
+const submitbar = document.getElementById('submitbar');
+const submitBtn = document.getElementById('submit-btn');
+let blob0 = null;      // ה-blob כפי שנטען מהשרת
+let schema = SCHEMAS[TYPE] || SCHEMAS.person;
+let answers = {};
+
+function toast(msg, ms=2600){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  clearTimeout(t._h); t._h = setTimeout(()=>t.style.display='none', ms);
+}
+function esc(s){ return String(s??'').replace(/[&<>"]/g,
+  c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function waLink(text){
+  return 'https://wa.me/' + SUPPORT_PHONE + '?text=' + encodeURIComponent(text);
+}
+async function putBlob(data, tries=3){
+  for(let i=1; i<=tries; i++){
+    try{
+      const r = await fetch(API + '/' + BLOB_ID, {method:'PUT',
+        headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
+      if(r.ok) return true;
+    }catch(e){}
+    await new Promise(res=>setTimeout(res, 900*i));
+  }
+  return false;
+}
+
+/* ================= מצבי תצוגה ================= */
+function showError(title, msg){
+  submitbar.classList.add('hide');
+  view.innerHTML = `<div class="card center">
+    <div class="state-icon">🤔</div>
+    <h2 style="margin:0 0 8px">${esc(title)}</h2>
+    <p class="sub">${esc(msg)}</p>
+    <a class="wa-btn" href="${waLink('שלום יהודה, ניסיתי לפתוח את קישור סרטון החידה ומשהו לא עבד 🙏')}">💬 כתבו ליהודה בוואטסאפ</a>
+  </div>`;
+}
+
+function showWaiting(){
+  submitbar.classList.add('hide');
+  view.innerHTML = `<div class="card center">
+    <div class="state-icon">✅</div>
+    <h2 style="margin:0 0 8px">השאלון התקבל!</h2>
+    <p class="sub">תודה רבה! אנחנו כבר עובדים על החידות.<br>
+    ברגע שהתסריט יהיה מוכן תקבלו הודעה בוואטסאפ — ותוכלו לחזור לכאן ולאשר אותו.</p>
+  </div>`;
+}
+
+function showApproved(){
+  submitbar.classList.add('hide');
+  view.innerHTML = `<div class="card center">
+    <div class="state-icon">🎬</div>
+    <h2 style="margin:0 0 8px">התסריט אושר — יצאנו להפקה!</h2>
+    <p class="sub">הסרטון בהכנה. נעדכן אתכם בוואטסאפ ברגע שהוא מוכן.<br>מזל טוב מראש! 🥳</p>
+  </div>`;
+}
+
+function showChangesReceived(){
+  submitbar.classList.add('hide');
+  view.innerHTML = `<div class="card center">
+    <div class="state-icon">📝</div>
+    <h2 style="margin:0 0 8px">קיבלנו את הבקשה!</h2>
+    <p class="sub">אנחנו מעדכנים את התסריט לפי ההערות שלכם.<br>נשלח לכם גרסה מעודכנת לאישור בהקדם.</p>
+  </div>`;
+}
+
+/* ================= דף אישור תסריט ================= */
+function showScript(){
+  document.getElementById('page-title').textContent = 'התסריט מוכן לאישור';
+  document.getElementById('page-sub').textContent = 'קראו את החידות — ואם הכל טוב, לחצו למטה על האישור';
+  submitbar.classList.add('hide');
+  const s = blob0.script || {};
+  const riddles = (s.riddles || []).map(r => `
+    <div class="riddle">
+      <div class="num">${esc(r.n)}</div>
+      <div>
+        <div class="txt">${esc(r.riddle_he)}</div>
+        <div class="shot">🎥 ${esc(r.shot_desc_he || '')}</div>
+      </div>
+    </div>`).join('');
+  view.innerHTML = `
+    <div class="card">
+      <h2 class="sec-title"><span class="dot">●</span>החידות, לפי סדר הופעתן</h2>
+      ${riddles}
+    </div>
+    <div class="card">
+      <div class="riddle"><div class="num">🎙</div><div>
+        <div class="txt">בסוף הסרטון: <b>${esc(s.ending_he || 'אז... מי אני?')}</b></div>
+        <div class="shot">⏱ ${esc(s.length_desc || 'כדקה, פורמט אנכי')}</div>
+      </div></div>
+    </div>
+    <div class="card center">
+      <button class="bigbtn" id="approve-btn">מאשרים! יוצאים להפקה 🎬</button>
+      <button class="bigbtn outline" id="changes-btn">רוצים לשנות משהו</button>
+      <div id="changes-box" class="hide" style="margin-top:14px; text-align:right">
+        <label class="flabel">מה תרצו לשנות?</label>
+        <textarea id="change-text" placeholder="למשל: חידה 3 מזהה מדי, אפשר משהו עדין יותר..."></textarea>
+        <button class="bigbtn" id="send-changes-btn" style="margin-top:10px">שליחת הבקשה</button>
+      </div>
+    </div>`;
+  document.getElementById('approve-btn').onclick = async (e)=>{
+    e.target.disabled = true; e.target.textContent = 'שולח...';
+    const b = {...blob0, status:'approved', approvedAt:new Date().toISOString()};
+    if(await putBlob(b)){ showApproved(); }
+    else{
+      e.target.disabled = false; e.target.textContent = 'מאשרים! יוצאים להפקה 🎬';
+      toast('לא הצלחנו לשלוח — נסו שוב או כתבו בוואטסאפ');
+      view.insertAdjacentHTML('beforeend',
+        `<div class="card center"><a class="wa-btn" href="${waLink('שלום יהודה! ראיתי את התסריט — מאושר! 🎬')}">💬 לאשר דרך וואטסאפ</a></div>`);
+    }
+  };
+  document.getElementById('changes-btn').onclick = ()=>{
+    document.getElementById('changes-box').classList.remove('hide');
+    document.getElementById('change-text').focus();
+  };
+  document.getElementById('send-changes-btn').onclick = async (e)=>{
+    const txt = document.getElementById('change-text').value.trim();
+    if(!txt){ toast('כתבו מה תרצו לשנות 🙂'); return; }
+    e.target.disabled = true; e.target.textContent = 'שולח...';
+    const b = {...blob0, status:'changes_requested', changeText:txt,
+               changesAt:new Date().toISOString()};
+    if(await putBlob(b)){ showChangesReceived(); }
+    else{
+      e.target.disabled = false; e.target.textContent = 'שליחת הבקשה';
+      toast('לא הצלחנו לשלוח — אפשר גם בוואטסאפ');
+      window.open(waLink('שלום יהודה, לגבי תסריט החידה — בקשת שינוי: ' + txt));
+    }
+  };
+}
+
+/* ================= רינדור השאלון ================= */
+function renderForm(){
+  document.getElementById('page-title').textContent = schema.title;
+  document.getElementById('page-sub').textContent = schema.sub;
+  let html = '';
+  schema.sections.forEach((sec, si)=>{
+    html += `<div class="card"><h2 class="sec-title"><span class="dot">●</span>${esc(sec.title)}</h2>`;
+    if(sec.hint) html += `<p class="sec-hint">${esc(sec.hint)}</p>`;
+    sec.fields.forEach(f=>{
+      if(f.type === 'info'){ html += `<div class="info">${esc(f.text)}</div>`; return; }
+      html += `<div class="field" id="fw-${f.key}">`;
+      html += `<label class="flabel">${esc(f.label)}${f.required?' <span class="req">*</span>':''}</label>`;
+      if(f.hint) html += `<div class="fhint">${esc(f.hint)}</div>`;
+      if(f.type==='chips' || f.type==='chips-multi'){
+        html += `<div class="chips" data-key="${f.key}" data-multi="${f.type==='chips-multi'}">`;
+        f.options.forEach(op=>{ html += `<button type="button" class="chip" data-val="${esc(op)}">${esc(op)}</button>`; });
+        if(f.allowOther) html += `<button type="button" class="chip" data-val="__other__">אחר...</button>`;
+        html += `</div>`;
+        if(f.allowOther) html += `<div class="other-input" id="other-${f.key}"><input type="text" id="otherv-${f.key}" placeholder="ספרו לנו..."></div>`;
+      } else if(f.type==='textarea'){
+        html += `<textarea id="in-${f.key}"></textarea>`;
+      } else {
+        const t = f.type==='tel'?'tel':(f.type==='number'?'number':(f.type==='date'?'date':'text'));
+        html += `<input type="${t}" id="in-${f.key}" ${t==='tel'?'placeholder="05X-XXXXXXX" inputmode="tel"':''}>`;
+      }
+      html += `<div class="missing-note" id="miss-${f.key}">שדה חובה 🙂</div></div>`;
+    });
+    html += `</div>`;
+  });
+  view.innerHTML = html;
+  submitbar.classList.remove('hide');
+
+  // צ'יפים
+  view.querySelectorAll('.chips').forEach(box=>{
+    const key = box.dataset.key, multi = box.dataset.multi === 'true';
+    box.querySelectorAll('.chip').forEach(ch=>{
+      ch.onclick = ()=>{
+        if(!multi) box.querySelectorAll('.chip').forEach(c=>{ if(c!==ch) c.classList.remove('on'); });
+        ch.classList.toggle('on');
+        const other = document.getElementById('other-'+key);
+        if(other){
+          const otherOn = box.querySelector('.chip[data-val="__other__"]').classList.contains('on');
+          other.classList.toggle('show', otherOn);
+        }
+        saveDraft();
+      };
+    });
+  });
+  view.querySelectorAll('input,textarea').forEach(el=> el.addEventListener('input', saveDraft));
+  restoreDraft();
+  submitBtn.onclick = submitForm;
+}
+
+function collectAnswers(){
+  const out = {};
+  schema.sections.forEach(sec=> sec.fields.forEach(f=>{
+    if(f.type==='info') return;
+    if(f.type==='chips' || f.type==='chips-multi'){
+      const box = view.querySelector(`.chips[data-key="${f.key}"]`);
+      if(!box) return;
+      let vals = [...box.querySelectorAll('.chip.on')].map(c=>c.dataset.val);
+      if(vals.includes('__other__')){
+        vals = vals.filter(v=>v!=='__other__');
+        const ov = (document.getElementById('otherv-'+f.key)||{}).value || '';
+        if(ov.trim()) vals.push(ov.trim());
+      }
+      out[f.key] = f.type==='chips' ? (vals[0]||'') : vals;
+    } else {
+      out[f.key] = (document.getElementById('in-'+f.key)||{}).value || '';
+    }
+  }));
+  return out;
+}
+
+function saveDraft(){
+  try{ localStorage.setItem(DRAFT_KEY, JSON.stringify(collectAnswers())); }catch(e){}
+}
+function restoreDraft(){
+  let d = null;
+  try{ d = JSON.parse(localStorage.getItem(DRAFT_KEY)||'null'); }catch(e){}
+  if(!d) return;
+  schema.sections.forEach(sec=> sec.fields.forEach(f=>{
+    if(f.type==='info' || d[f.key]===undefined) return;
+    if(f.type==='chips' || f.type==='chips-multi'){
+      const vals = Array.isArray(d[f.key]) ? d[f.key] : [d[f.key]];
+      const box = view.querySelector(`.chips[data-key="${f.key}"]`);
+      if(!box) return;
+      let hadOther = false;
+      vals.filter(Boolean).forEach(v=>{
+        const ch = [...box.querySelectorAll('.chip')].find(c=>c.dataset.val===v);
+        if(ch) ch.classList.add('on');
+        else { hadOther = true;
+          const oc = box.querySelector('.chip[data-val="__other__"]');
+          if(oc){ oc.classList.add('on');
+            const oi = document.getElementById('otherv-'+f.key); if(oi) oi.value = v; } }
+      });
+      if(hadOther){ const o = document.getElementById('other-'+f.key); if(o) o.classList.add('show'); }
+    } else {
+      const el = document.getElementById('in-'+f.key); if(el) el.value = d[f.key];
+    }
+  }));
+  toast('הטיוטה שלכם שוחזרה 👌');
+}
+
+function answersAsText(a){
+  const lines = ['שלום יהודה! מילאתי את שאלון סרטון החידה אבל השליחה באתר לא עבדה. הנה התשובות:',''];
+  schema.sections.forEach(sec=> sec.fields.forEach(f=>{
+    if(f.type==='info') return;
+    const v = a[f.key];
+    const sv = Array.isArray(v) ? v.join(', ') : v;
+    if(sv) lines.push(`${f.label}: ${sv}`);
+  }));
+  lines.push('', 'מזהה הזמנה: ' + BLOB_ID);
+  return lines.join('\n');
+}
+
+async function submitForm(){
+  const a = collectAnswers();
+  // ולידציה עדינה
+  let firstMissing = null;
+  schema.sections.forEach(sec=> sec.fields.forEach(f=>{
+    if(!f.required || f.type==='info') return;
+    const v = a[f.key];
+    const empty = Array.isArray(v) ? v.length===0 : !String(v||'').trim();
+    const wrap = document.getElementById('fw-'+f.key);
+    const note = document.getElementById('miss-'+f.key);
+    if(empty){
+      if(note) note.style.display='block';
+      const el = document.getElementById('in-'+f.key); if(el) el.classList.add('missing');
+      if(!firstMissing) firstMissing = wrap;
+    } else {
+      if(note) note.style.display='none';
+      const el = document.getElementById('in-'+f.key); if(el) el.classList.remove('missing');
+    }
+  }));
+  if(firstMissing){
+    firstMissing.scrollIntoView({behavior:'smooth', block:'center'});
+    toast('חסרים כמה פרטים קטנים 🙂');
+    return;
+  }
+  submitBtn.disabled = true; submitBtn.classList.add('gray');
+  submitBtn.textContent = 'שולח...';
+  const payload = {
+    status:'submitted',
+    type: TYPE,
+    orderId: (blob0 && blob0.orderId) || '',
+    createdAt: (blob0 && blob0.createdAt) || '',
+    submittedAt: new Date().toISOString(),
+    answers: a
+  };
+  if(await putBlob(payload)){
+    try{ localStorage.removeItem(DRAFT_KEY); }catch(e){}
+    window.scrollTo({top:0});
+    showWaiting();
+  } else {
+    submitBtn.disabled = false; submitBtn.classList.remove('gray');
+    submitBtn.textContent = 'שליחת השאלון ✓';
+    toast('אופס, השליחה לא עברה. אל דאגה — הכל שמור אצלכם!', 4000);
+    if(!document.getElementById('wa-fallback')){
+      view.insertAdjacentHTML('beforeend', `<div class="card center" id="wa-fallback">
+        <p class="sub">אפשר לשלוח את התשובות ישירות בוואטסאפ בלחיצה אחת:</p>
+        <a class="wa-btn" href="${waLink(answersAsText(a))}">💬 שליחת התשובות בוואטסאפ</a>
+      </div>`);
+      document.getElementById('wa-fallback').scrollIntoView({behavior:'smooth'});
+    }
+  }
+}
+
+/* ================= אתחול ================= */
+async function init(){
+  if(!BLOB_ID){ showError('הקישור אינו תקין', 'נראה שחסר משהו בקישור. כתבו לנו ונשלח לכם קישור חדש.'); return; }
+  let r;
+  try{ r = await fetch(API + '/' + BLOB_ID, {cache:'no-store'}); }
+  catch(e){ showError('אין חיבור', 'לא הצלחנו להתחבר. בדקו את האינטרנט ונסו שוב, או כתבו לנו.'); return; }
+  if(r.status === 404){ showError('הקישור אינו תקין או שפג תוקפו', 'אל דאגה — כתבו לנו ונשלח לכם קישור חדש מיד.'); return; }
+  if(!r.ok){ showError('משהו השתבש', 'נסו לרענן את הדף, או כתבו לנו בוואטסאפ.'); return; }
+  try{ blob0 = await r.json(); }
+  catch(e){ showError('משהו השתבש', 'נסו לרענן את הדף, או כתבו לנו בוואטסאפ.'); return; }
+
+  const st = blob0.status || 'pending';
+  if(st === 'pending') renderForm();
+  else if(st === 'submitted') showWaiting();
+  else if(st === 'script_ready') showScript();
+  else if(st === 'approved') showApproved();
+  else if(st === 'changes_requested') showChangesReceived();
+  else renderForm();
+}
+init();
+</script>
+</body>
+</html>
