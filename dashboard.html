@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>דשבורד סרטוני חידה</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--teal:#0e9488; --teal-dark:#0b756c; --teal-soft:#e6f4f2; --ink:#1f2933;
+ --ink-soft:#52606d; --bg:#faf9f6; --card:#fff; --line:#eceae4;
+ --amber:#b7791f; --amber-soft:#fdf3e0; --blue:#2b6cb0; --blue-soft:#e8f0fa;
+ --green:#276749; --green-soft:#e3f3e8; --gray:#718096; --gray-soft:#eef0f3;
+ --red:#c0392b; --red-soft:#faeae7}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+body{margin:0; background:var(--bg); color:var(--ink); font-family:'Heebo',sans-serif;
+ font-size:16px; line-height:1.55}
+.wrap{max-width:760px; margin:0 auto; padding:24px 16px 60px}
+header{display:flex; align-items:baseline; justify-content:space-between; margin:6px 0 18px}
+h1{font-size:23px; font-weight:900; margin:0}
+h1 .dot{color:var(--teal)}
+#updated{font-size:12.5px; color:var(--ink-soft)}
+.summary{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px}
+.stat{background:var(--card); border-radius:14px; padding:10px 16px; flex:1; min-width:100px;
+ box-shadow:0 1px 4px rgba(31,41,51,.05); text-align:center}
+.stat b{display:block; font-size:24px; font-weight:900; color:var(--teal-dark)}
+.stat span{font-size:12.5px; color:var(--ink-soft)}
+.card{background:var(--card); border-radius:16px; padding:16px 18px; margin-bottom:14px;
+ box-shadow:0 1px 4px rgba(31,41,51,.05)}
+.row1{display:flex; justify-content:space-between; align-items:center; gap:10px}
+.cname{font-weight:700; font-size:17px}
+.hint{color:var(--ink-soft); font-size:14px; margin-top:2px}
+.badge{border-radius:999px; padding:4px 13px; font-size:13px; font-weight:700; white-space:nowrap}
+.progress{display:flex; gap:4px; margin:12px 0 4px}
+.pstep{flex:1; height:5px; border-radius:3px; background:var(--line)}
+.pstep.on{background:var(--teal)}
+.meta{display:flex; justify-content:space-between; align-items:center; margin-top:10px}
+.next{font-size:13.5px; color:var(--ink-soft)}
+.next b{color:var(--ink)}
+.acts{display:flex; gap:8px}
+.act{border:1.5px solid var(--line); background:#fff; color:var(--ink); border-radius:10px;
+ padding:6px 12px; font:inherit; font-size:13.5px; cursor:pointer; text-decoration:none}
+.act.wa{border-color:#25D366; color:#128C7E; font-weight:700}
+.empty{text-align:center; color:var(--ink-soft); padding:60px 0}
+.empty .big{font-size:46px}
+.err{background:var(--red-soft); color:var(--red); border-radius:12px; padding:14px; text-align:center}
+#toast{position:fixed; top:14px; right:14px; left:14px; margin:0 auto; max-width:320px;
+ background:var(--ink); color:#fff; border-radius:12px; padding:10px 16px; text-align:center;
+ font-size:14px; display:none; z-index:50}
+.section-label{font-size:13px; font-weight:700; color:var(--ink-soft); margin:20px 4px 8px;
+ text-transform:uppercase; letter-spacing:.4px}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+<div class="wrap">
+  <header>
+    <h1><span class="dot">●</span> סרטוני חידה</h1>
+    <span id="updated"></span>
+  </header>
+  <div class="summary" id="summary"></div>
+  <div id="list"><div class="empty"><div class="big">⏳</div>טוען...</div></div>
+</div>
+<script>
+const API = 'https://riddle-store-yh.netlify.app/api/store';
+const FORM = 'https://yrhyrh30.github.io/riddle-form/';
+const KEY = new URLSearchParams(location.search).get('key') || '';
+
+const STATUS = {
+  created:            {label:'נוצרה',            cls:['var(--gray)','var(--gray-soft)'],  step:0, next:'לשלוח את הקישור ללקוח'},
+  link_sent:          {label:'ממתין לשאלון',      cls:['var(--amber)','var(--amber-soft)'],step:1, next:'הלקוח עוד לא מילא — אחרי יומיים שולחים תזכורת'},
+  answers_received:   {label:'שאלון התקבל',       cls:['var(--blue)','var(--blue-soft)'],  step:2, next:'לכתוב חידות ותסריט (להגיד לקלוד: בדוק הזמנות חידה)'},
+  script_draft:       {label:'תסריט בכתיבה',      cls:['var(--blue)','var(--blue-soft)'],  step:3, next:'לסיים את התסריט ולשלוח לאישור'},
+  script_sent:        {label:'ממתין לאישור לקוח', cls:['var(--amber)','var(--amber-soft)'],step:4, next:'הלקוח מאשר בקישור — לבדוק עם "בדוק הזמנות חידה"'},
+  changes_requested:  {label:'התבקשו שינויים',    cls:['var(--red)','var(--red-soft)'],    step:4, next:'לעדכן את התסריט ולשלוח שוב'},
+  approved:           {label:'אושר ע"י הלקוח ✓', cls:['var(--green)','var(--green-soft)'],step:5, next:'ממתין לאישור הרצה של יהודה 💰'},
+  generating:         {label:'בהפקה 🎬',          cls:['var(--blue)','var(--blue-soft)'],  step:6, next:'הסרטון נוצר — תמונות, וידאו, קריינות'},
+  video_ready:        {label:'סרטון מוכן',        cls:['var(--green)','var(--green-soft)'],step:7, next:'בדיקת איכות של יהודה → מסירה'},
+  delivered:          {label:'נמסר ללקוח 🎉',     cls:['var(--green)','var(--green-soft)'],step:8, next:'ממתין לתגובת הלקוח — ואז לסגור'},
+  closed:             {label:'הושלם',            cls:['var(--gray)','var(--gray-soft)'],  step:9, next:''},
+  cancelled:          {label:'בוטל',             cls:['var(--gray)','var(--gray-soft)'],  step:0, next:''},
+};
+const TOTAL_STEPS = 9;
+const OPEN = s => !['closed','cancelled','delivered'].includes(s);
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;
+ t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',2000);}
+function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function ago(iso){
+  if(!iso) return '';
+  const m = Math.round((Date.now()-new Date(iso).getTime())/60000);
+  if(m<1) return 'עכשיו'; if(m<60) return `לפני ${m} דק'`;
+  const h = Math.round(m/60); if(h<24) return `לפני ${h} שע'`;
+  return `לפני ${Math.round(h/24)} ימים`;
+}
+
+function card(o){
+  const st = STATUS[o.status] || STATUS.created;
+  const last = (o.history && o.history.length) ? o.history[o.history.length-1].at : '';
+  const steps = Array.from({length:TOTAL_STEPS},(_,i)=>
+    `<div class="pstep${i < st.step ? ' on':''}"></div>`).join('');
+  const link = FORM + '?id=' + encodeURIComponent(o.blobId) + '&t=' + (o.type||'person');
+  const wa = 'https://wa.me/' + o.phone;
+  return `<div class="card">
+    <div class="row1">
+      <div><div class="cname">${esc(o.client)}</div>
+        <div class="hint">${esc(o.subject_hint||'')} · ${esc(o.id)}</div></div>
+      <span class="badge" style="color:${st.cls[0]};background:${st.cls[1]}">${st.label}</span>
+    </div>
+    <div class="progress">${steps}</div>
+    <div class="meta">
+      <div class="next">${st.next ? '⬅ <b>הבא:</b> ' + st.next : ''} <span style="color:var(--ink-soft)">· ${ago(last)}</span></div>
+    </div>
+    <div class="acts" style="margin-top:10px">
+      <a class="act wa" href="${wa}" target="_blank">💬 וואטסאפ</a>
+      <button class="act" onclick="navigator.clipboard.writeText('${link}').then(()=>toast('הקישור הועתק ✓'))">🔗 העתקת קישור לקוח</button>
+      ${o.drive_link ? `<a class="act" href="${esc(o.drive_link)}" target="_blank">🎬 הסרטון</a>`:''}
+    </div>
+  </div>`;
+}
+
+async function load(){
+  if(!KEY){ document.getElementById('list').innerHTML =
+    '<div class="err">חסר מפתח בקישור — פתחו את הדשבורד מהקישור השמור</div>'; return; }
+  let data;
+  try{
+    const r = await fetch(API + '?id=dashboard-' + encodeURIComponent(KEY), {cache:'no-store'});
+    if(!r.ok) throw new Error(r.status);
+    data = await r.json();
+  }catch(e){
+    document.getElementById('list').innerHTML =
+      '<div class="err">לא הצלחנו לטעון נתונים — בדקו אינטרנט ורעננו</div>';
+    return;
+  }
+  const orders = (data.orders||[]).slice().reverse();
+  document.getElementById('updated').textContent = 'עודכן ' + ago(data.updatedAt);
+
+  const counts = {waitFill:0, waitApprove:0, prod:0, done:0};
+  orders.forEach(o=>{
+    if(['created','link_sent'].includes(o.status)) counts.waitFill++;
+    else if(['answers_received','script_draft','script_sent','changes_requested','approved'].includes(o.status)) counts.waitApprove++;
+    else if(['generating','video_ready'].includes(o.status)) counts.prod++;
+    else if(['delivered','closed'].includes(o.status)) counts.done++;
+  });
+  document.getElementById('summary').innerHTML = `
+    <div class="stat"><b>${counts.waitFill}</b><span>ממתינים לשאלון</span></div>
+    <div class="stat"><b>${counts.waitApprove}</b><span>בתסריט/אישור</span></div>
+    <div class="stat"><b>${counts.prod}</b><span>בהפקה</span></div>
+    <div class="stat"><b>${counts.done}</b><span>נמסרו</span></div>`;
+
+  const open = orders.filter(o=>OPEN(o.status));
+  const closed = orders.filter(o=>!OPEN(o.status));
+  let html = '';
+  if(!orders.length)
+    html = '<div class="empty"><div class="big">🎬</div>עוד אין הזמנות — ההזמנה הראשונה בדרך!</div>';
+  else{
+    if(open.length) html += '<div class="section-label">פעילות</div>' + open.map(card).join('');
+    if(closed.length) html += '<div class="section-label">הושלמו</div>' + closed.map(card).join('');
+  }
+  document.getElementById('list').innerHTML = html;
+}
+load();
+setInterval(load, 30000);
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) load(); });
+</script>
+</body>
+</html>
